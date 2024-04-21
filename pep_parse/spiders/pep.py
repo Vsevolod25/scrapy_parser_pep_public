@@ -1,12 +1,13 @@
 import scrapy
 
 from pep_parse.items import PepParseItem
+from pep_parse.settings import MAIN_URL
 
 
 class PepSpider(scrapy.Spider):
     name = 'pep'
-    allowed_domains = ['peps.python.org']
-    start_urls = ['https://peps.python.org/']
+    allowed_domains = [MAIN_URL]
+    start_urls = [f'https://{url}/' for url in allowed_domains]
 
     def parse(self, response):
         pep_links = response.css(
@@ -17,10 +18,9 @@ class PepSpider(scrapy.Spider):
 
     def parse_pep(self, response):
         title = response.css('h1.page-title::text').get()
-        print(title)
-        data = {
-            'number': title.split(' ')[1],
-            'name': title.split(' – ')[1],
-            'status': response.css('abbr::text').get(),
-        }
+        data = dict(
+            number=title.split(' ')[1],
+            name=title.split(' – ')[1],
+            status=response.css('abbr::text').get(),
+        )
         yield PepParseItem(data)
